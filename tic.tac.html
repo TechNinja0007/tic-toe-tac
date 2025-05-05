@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe - Player vs Bot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    td {
+      width: 80px;
+      height: 80px;
+      font-size: 2em;
+      text-align: center;
+      border: 2px solid #000;
+      cursor: pointer;
+    }
+    .status {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe (Player vs Bot)</h1>
+  <table id="board"></table>
+  <div class="status" id="status">Your turn (X)</div>
+
+  <script>
+    const boardElement = document.getElementById('board');
+    const statusElement = document.getElementById('status');
+    let board = Array(9).fill('');
+    let gameOver = false;
+
+    function renderBoard() {
+      boardElement.innerHTML = '';
+      for (let i = 0; i < 3; i++) {
+        const row = document.createElement('tr');
+        for (let j = 0; j < 3; j++) {
+          const cell = document.createElement('td');
+          const index = i * 3 + j;
+          cell.textContent = board[index];
+          cell.addEventListener('click', () => handleMove(index));
+          row.appendChild(cell);
+        }
+        boardElement.appendChild(row);
+      }
+    }
+
+    function handleMove(index) {
+      if (gameOver || board[index] !== '') return;
+
+      board[index] = 'X'; // Human plays X
+      renderBoard();
+      if (checkWinner('X')) {
+        statusElement.textContent = 'You win!';
+        gameOver = true;
+        return;
+      }
+      if (boardFull()) {
+        statusElement.textContent = 'It\'s a draw!';
+        gameOver = true;
+        return;
+      }
+
+      statusElement.textContent = 'Bot\'s turn (O)';
+      setTimeout(botMove, 500); // Bot move with delay
+    }
+
+    function botMove() {
+      let move = bestMove();
+      if (move !== null) {
+        board[move] = 'O'; // Bot plays O
+        renderBoard();
+        if (checkWinner('O')) {
+          statusElement.textContent = 'Bot wins!';
+          gameOver = true;
+          return;
+        }
+        if (boardFull()) {
+          statusElement.textContent = 'It\'s a draw!';
+          gameOver = true;
+          return;
+        }
+        statusElement.textContent = 'Your turn (X)';
+      }
+    }
+
+    function bestMove() {
+      // Simple bot: pick first winning move or block player, else random
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === '') {
+          board[i] = 'O';
+          if (checkWinner('O')) {
+            return i;
+          }
+          board[i] = '';
+        }
+      }
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === '') {
+          board[i] = 'X';
+          if (checkWinner('X')) {
+            board[i] = '';
+            return i;
+          }
+          board[i] = '';
+        }
+      }
+      const emptyCells = board.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+      return emptyCells.length ? emptyCells[Math.floor(Math.random() * emptyCells.length)] : null;
+    }
+
+    function checkWinner(player) {
+      const wins = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // cols
+        [0, 4, 8], [2, 4, 6]             // diagonals
+      ];
+      return wins.some(comb => comb.every(i => board[i] === player));
+    }
+
+    function boardFull() {
+      return board.every(cell => cell !== '');
+    }
+
+    renderBoard();
+  </script>
+</body>
+</html>
